@@ -31,35 +31,52 @@ class Field {
         }
     }
 
-    getCharAtPosition(pathPosition) {
-        return this.fieldDefinition[pathPosition[0]][pathPosition[1]]
+    getCharAtPosition(pathPositionInput) {
+        try {
+            return this.fieldDefinition[pathPositionInput[0]][pathPositionInput[1]];
+        } catch {
+            console.log('You fell off the board, you lose!');
+            process.exit();
+        }
     }
 
-    setCharAtPosition(pathPosition, newChar) {
-        this.fieldDefinition[pathPosition[0]][pathPosition[1]] = newChar;
+    setCharAtPosition(pathPositionInput, newChar) {
+        this.fieldDefinition[pathPositionInput[0]][pathPositionInput[1]] = newChar;
     }
     
     // method to move the path character based on input provided by the user
     movePathChar(direction) {
         let newPathPosition = [];
         // update the newPathPosition array based on the user input and the last state of this.pathPosition
+        // console.log(`direction: ${direction}`);
         switch(direction) {
             case 'u':
                 newPathPosition[0] = this.pathPosition[0] - 1;
                 newPathPosition[1] = this.pathPosition[1];
+                break;
             case 'd':
+                // console.log('I made it into d')
+                // console.log(`this.pathPosition[0] + 1: ${this.pathPosition[0] + 1}`);
+                //console.log(`this.pathPosition[1]: ${this.pathPosition[1]}`);
                 newPathPosition[0] = this.pathPosition[0] + 1;
                 newPathPosition[1] = this.pathPosition[1];
+                break;
             case 'r':
                 newPathPosition[0] = this.pathPosition[0];
                 newPathPosition[1] = this.pathPosition[1] + 1;
+                break;
             case 'l':
                 newPathPosition[0] = this.pathPosition[0];
                 newPathPosition[1] = this.pathPosition[1] - 1; 
+                break;
         };
         // create a variable and store the value of the character at the new coordinates
+        // console.log(`this.pathPosition: ${this.pathPosition}`);
+        // console.log(`this.fieldDefinition[pathPosition[0]]: ${this.fieldDefinition[this.pathPosition[0]]}`);
+        // console.log(`this.fieldDefinition[pathPosition[0]][pathPosition[1]]: ${this.fieldDefinition[this.pathPosition[0]][this.pathPosition[1]]}`);
         let newPathPositionChar = this.getCharAtPosition(newPathPosition);
-        console.log(`newPathPositionChar: ${newPathPositionChar}`);
+        // console.log(`newPathPosition: ${newPathPosition}`);
+        // console.log(`newPathPositionChar: ${newPathPositionChar}`);
         /* validate the move based on the value of the character at the new coordinate 
         requirements:
             This should continue until the user either:
@@ -69,28 +86,41 @@ class Field {
             When any of the above occur, let the user know and end the game.
         */
         // Validate that the new position is actually on the board
-        if (newPathPosition[0] > this.maxYAxis || newPathPosition[1] > this.maxXAxis) {
+        // TO-DO: Remove? Should be handled by try...catch on line 35
+        if (newPathPosition[0] > this.maxYAxis || newPathPosition[1] > this.maxXAxis ||
+        newPathPosition[0] < 0 || newPathPosition[1] < 0) {
             console.log('You fell off the board. You lose!');
             process.exit();
         }
         // Take the appropriate action based on the character at the new coordinate
-        console.log('about to check which character is at the new path position')
+        // console.log('about to check which character is at the new path position')
         switch(newPathPositionChar) {
-            case '^':
+            case hat:
                 console.log('You win!');
                 process.exit();
-            case '0':
+                break;
+            case hole:
                 console.log('You fell down a hole. You lose!');
                 process.exit();
-            case '░':
+                break;
+            case fieldCharacter:
                 // After entering an instruction, the user should see a printed result of their current field map with the tiles they have visited marked with *. They should be prompted for their next move.
-                this.setCharAtPosition(this.pathPosition) = pathCharacter;
                 this.pathPosition = newPathPosition;
+                this.setCharAtPosition(this.pathPosition, pathCharacter);
                 console.log('Updated board:');
                 this.print();
-                console.log('Which direction would you like to move?\nu for up\nd for down\nr for right\nl for left\n');  
+                console.log('Which direction would you like to move?\nu for up\nd for down\nr for right\nl for left\n');
+                break;
+            case pathCharacter:
+                this.pathPosition = newPathPosition;
+                this.setCharAtPosition(this.pathPosition, pathCharacter);
+                console.log('Updated board:');
+                this.print();
+                console.log('Which direction would you like to move?\nu for up\nd for down\nr for right\nl for left\n');
+                break;
+            default:
+                console.log('didn\'t match any of the cases');
         };
-        console.log('didn\'t match any of the cases');
     }
 }
 
@@ -106,17 +136,26 @@ function validateInput(input){
 }
 
 function handleUserInput(inputRaw){
-    console.log('I made it inside handleUserInput');
-    const input = inputRaw.toString().trim().toLowerCase();
-    if (validateInput(input)) {
-        console.log('I made it past validation.')
-        myField.movePathChar(input);
+    // console.log('I made it inside handleUserInput');
+    const cleanInput = inputRaw.toString().trim().toLowerCase();
+    if (validateInput(cleanInput)) {
+        // console.log('I made it past validation.')
+        myField.movePathChar(cleanInput);
     } else {
         console.log('Invalid input. Please try again.');
     }
 }
 
+function quitGameHandler(inputRaw){
+    const cleanInput = inputRaw.toString().trim().toLowerCase();
+    if (cleanInput == 'quit') {
+        console.log('Thanks for playing! Goodbye.');
+        process.exit();
+    }
+}
+
 console.log('Initial board:');
 myField.print();
-console.log('Which direction would you like to move?\nu for up\nd for down\nr for right\nl for left\n');
+console.log('Which direction would you like to move?\nu for up\nd for down\nr for right\nl for left\nquit to exit\n');
+process.stdin.on('data', quitGameHandler);
 process.stdin.on('data', handleUserInput);
