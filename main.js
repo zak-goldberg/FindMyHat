@@ -4,6 +4,7 @@ const hat = '^';
 const hole = 'O';
 const fieldCharacter = '░';
 const pathCharacter = '*';
+const charArray = [hat, hole, fieldCharacter];
 
 /*
 Pass a "field" array when creating a new instance of the class. Sample field array:
@@ -122,19 +123,63 @@ class Field {
                 console.log('didn\'t match any of the cases');
         };
     }
+
+    static generateField (height, width, percentageHoles) {
+        //TO-DO - add percentage argument to specify what percent of the field should be covered in holes.
+        let newFieldFlat = [hat];
+        let newField = [];
+        let row = [];
+        let hatPlaced = false;
+        let numFieldChar = Math.ceil((height * width) * (1 - percentageHoles / 100));
+        let numHoleChar = Math.floor((height * width) * (percentageHoles / 100));
+        for (let k = 0; k < numFieldChar; k++) {
+            newFieldFlat.push(fieldCharacter);
+        }
+        for (let l = 0; l < numHoleChar; l++) {
+            newFieldFlat.push(hole);
+        }
+        // newFieldFlat = shuffleArray(newFieldFlat);
+        // TO-DO - get a random char from newFieldFlat and the delete it from the array using the delete operator
+        // https://sentry.io/answers/remove-specific-item-from-array/
+        // loop through each row and append row to newField
+        for (let i = 0; i < height; i++) {
+            row = [];
+            // generate each row
+            for (let j = 0; j < width; j++) {
+                // top left char should be path character
+                if (i == 0 && j == 0) {
+                    row.push(pathCharacter);
+                } else {
+                   // if hat has already been placed, pass hat character as the character to ignore to generateFieldChar
+                    if (hatPlaced) {
+                        row.push(generateFieldChar(hat));
+                    } else {
+                        let newChar = generateFieldChar();
+                        row.push(newChar);
+                        if (newChar == hat) hatPlaced = true;
+                };
+                }
+            }
+            newField.push(row);
+        }
+        return newField;
+    }
 }
 
+// Hardcoded instance of field class before generateField method is created
 const myField = new Field([
     ['*', '░', 'O'],
     ['░', 'O', '░'],
     ['░', '^', '░'],
   ]);
 
-function validateInput(input){
+// Helper function to valide that user input is one of the allowable letters during gameplay
+  function validateInput(input){
     allowableResponses = ['r', 'l', 'u', 'd'];
     return allowableResponses.includes(input);
 }
 
+// Callback function to handle user input during gameplay
 function handleUserInput(inputRaw){
     // console.log('I made it inside handleUserInput');
     const cleanInput = inputRaw.toString().trim().toLowerCase();
@@ -146,6 +191,7 @@ function handleUserInput(inputRaw){
     }
 }
 
+// Callback function to end the process if the user types "quit"
 function quitGameHandler(inputRaw){
     const cleanInput = inputRaw.toString().trim().toLowerCase();
     if (cleanInput == 'quit') {
@@ -154,8 +200,36 @@ function quitGameHandler(inputRaw){
     }
 }
 
+// Helper function to generate random characters in the field
+// To do - make this a method of the class
+function generateFieldChar(inputCharArray, ignoreChar) {
+    let randNum = Math.floor(Math.random() * inputCharArray.length);
+    // If user has provided a character to ignore, re-assign the random number in a loop so the ignored char is not returned
+    if (ignoreChar) {
+        while (inputCharArray[randNum] == ignoreChar) {
+            randNum = Math.floor(Math.random() * inputCharArray.length);
+        }
+    }
+    return charArray[randNum];
+}
+
+// Helper function to shuffle array using Fisher-Yates Sorting Algo
+function shuffleArray (array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+
 console.log('Initial board:');
 myField.print();
 console.log('Which direction would you like to move?\nu for up\nd for down\nr for right\nl for left\nquit to exit\n');
 process.stdin.on('data', quitGameHandler);
 process.stdin.on('data', handleUserInput);
+
+
+/* testing commands for generateField static method
+const testField = Field.generateField(6,6);
+console.log(testField);
+*/
