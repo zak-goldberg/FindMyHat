@@ -1,5 +1,3 @@
-const prompt = require('prompt-sync')({sigint: true});
-
 const hat = '^';
 const hole = 'O';
 const fieldCharacter = '░';
@@ -20,8 +18,8 @@ class Field {
         // requirement: The player will begin in the upper-left of the field, and the player’s path is represented by *.
         // pathPosition[0] represents y axis coordinate; pathPosition[1] represents x axis coordinate
         this.pathPosition = [0, 0];
-        this.maxXAxis = fieldInput[0].length - 1;
-        this.maxYAxis = fieldInput.length - 1;
+    //    this.maxXAxis = fieldInput[0].length - 1;
+    //    this.maxYAxis = fieldInput.length - 1;
     }
     
     // method to print the current board
@@ -88,11 +86,13 @@ class Field {
         */
         // Validate that the new position is actually on the board
         // TO-DO: Remove? Should be handled by try...catch on line 35
+        /*
         if (newPathPosition[0] > this.maxYAxis || newPathPosition[1] > this.maxXAxis ||
         newPathPosition[0] < 0 || newPathPosition[1] < 0) {
             console.log('You fell off the board. You lose!');
             process.exit();
         }
+        */
         // Take the appropriate action based on the character at the new coordinate
         // console.log('about to check which character is at the new path position')
         switch(newPathPositionChar) {
@@ -129,18 +129,16 @@ class Field {
         let newFieldFlat = [hat];
         let newField = [];
         let row = [];
-        let hatPlaced = false;
+        // let hatPlaced = false;
         let numFieldChar = Math.ceil((height * width) * (1 - percentageHoles / 100));
         let numHoleChar = Math.floor((height * width) * (percentageHoles / 100));
-        for (let k = 0; k < numFieldChar; k++) {
+        for (let k = 0; k < numFieldChar - 1; k++) {
             newFieldFlat.push(fieldCharacter);
         }
-        for (let l = 0; l < numHoleChar; l++) {
+        for (let l = 0; l < numHoleChar - 1; l++) {
             newFieldFlat.push(hole);
         }
         // newFieldFlat = shuffleArray(newFieldFlat);
-        // TO-DO - get a random char from newFieldFlat and the delete it from the array using the delete operator
-        // https://sentry.io/answers/remove-specific-item-from-array/
         // loop through each row and append row to newField
         for (let i = 0; i < height; i++) {
             row = [];
@@ -149,8 +147,19 @@ class Field {
                 // top left char should be path character
                 if (i == 0 && j == 0) {
                     row.push(pathCharacter);
+                // get a random index of newFieldFlat, add to row, splice from newFieldFlat so we don't add again
                 } else {
-                   // if hat has already been placed, pass hat character as the character to ignore to generateFieldChar
+                //    console.log(`newFieldFlat: ${newFieldFlat}`);
+                    let randIndex = Math.floor(Math.random() * newFieldFlat.length);
+                //    console.log(`newFieldFlat.length: ${newFieldFlat.length}`);
+                //    console.log(`typeof newFieldFlat.length: ${typeof newFieldFlat.length}`);
+                //    console.log(`randIndex: ${randIndex}`);
+                    row.push(newFieldFlat[randIndex]);
+                //    console.log(`newFieldFlat[randIndex]: ${newFieldFlat[randIndex]}`);                    
+                    newFieldFlat.splice(randIndex, 1);
+                //    console.log(`newFieldFlat after splice: ${newFieldFlat}`);
+                /*  
+                // if hat has already been placed, pass hat character as the character to ignore to generateFieldChar  
                     if (hatPlaced) {
                         row.push(generateFieldChar(hat));
                     } else {
@@ -158,6 +167,7 @@ class Field {
                         row.push(newChar);
                         if (newChar == hat) hatPlaced = true;
                 };
+                */
                 }
             }
             newField.push(row);
@@ -167,12 +177,13 @@ class Field {
 }
 
 // Hardcoded instance of field class before generateField method is created
+/*
 const myField = new Field([
     ['*', '░', 'O'],
     ['░', 'O', '░'],
     ['░', '^', '░'],
   ]);
-
+*/
 // Helper function to valide that user input is one of the allowable letters during gameplay
   function validateInput(input){
     allowableResponses = ['r', 'l', 'u', 'd'];
@@ -213,6 +224,11 @@ function generateFieldChar(inputCharArray, ignoreChar) {
     return charArray[randNum];
 }
 
+// Helper function to get random index for an array
+const getRandomIndex = (array) => {
+    return Math.floor(Math.random * array.length);
+}
+
 // Helper function to shuffle array using Fisher-Yates Sorting Algo
 function shuffleArray (array) {
     for (let i = array.length - 1; i > 0; i--) {
@@ -222,14 +238,10 @@ function shuffleArray (array) {
     return array;
 }
 
+const testField = Field.generateField(6, 6, 30);
+const myField = new Field(testField);
 console.log('Initial board:');
 myField.print();
 console.log('Which direction would you like to move?\nu for up\nd for down\nr for right\nl for left\nquit to exit\n');
 process.stdin.on('data', quitGameHandler);
 process.stdin.on('data', handleUserInput);
-
-
-/* testing commands for generateField static method
-const testField = Field.generateField(6,6);
-console.log(testField);
-*/
